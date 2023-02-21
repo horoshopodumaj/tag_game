@@ -7,6 +7,7 @@ if (itemNodes.length !== 16) {
 }
 
 /** 1.Position */
+itemNodes[countItems - 1].style.display = "none";
 let matrix = getMatrix(itemNodes.map((item) => Number(item.dataset.matrixId)));
 
 setPositionItems(matrix);
