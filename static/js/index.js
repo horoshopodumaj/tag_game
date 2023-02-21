@@ -7,13 +7,23 @@ if (itemNodes.length !== 16) {
 }
 
 /** 1.Position */
+
 itemNodes[countItems - 1].style.display = "none";
 let matrix = getMatrix(itemNodes.map((item) => Number(item.dataset.matrixId)));
 
 setPositionItems(matrix);
 /** 2.Shuffle */
+
+document.getElementById("shuffle").addEventListener("click", () => {
+    const flatMatrix = matrix.flat();
+    const shuffledArray = shuffleArray(flatMatrix);
+    matrix = getMatrix(shuffledArray);
+    setPositionItems(matrix);
+});
+
 /** 3.Change position by click */
 /** 4.Change position by keydown */
+/** 5.Show won */
 
 /**
  * Helpers
@@ -49,4 +59,11 @@ function setPositionItems(matrix) {
 function setNodeStyles(node, x, y) {
     const shiftPs = 100;
     node.style.transform = `translate3D(${x * shiftPs}%, ${y * shiftPs}%, 0)`;
+}
+
+function shuffleArray(arr) {
+    return arr
+        .map((value) => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
 }
