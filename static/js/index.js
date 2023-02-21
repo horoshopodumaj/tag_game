@@ -1,5 +1,6 @@
 const containerNode = document.getElementById("fifteen");
 const itemNodes = Array.from(containerNode.querySelectorAll(".item"));
+const gameNode = document.getElementById("game");
 const countItems = 16;
 
 if (itemNodes.length !== 16) {
@@ -14,16 +15,45 @@ let matrix = getMatrix(itemNodes.map((item) => Number(item.dataset.matrixId)));
 setPositionItems(matrix);
 /** 2.Shuffle */
 
+// document.getElementById("shuffle").addEventListener("click", () => {
+//     const flatMatrix = matrix.flat();
+//     const shuffledArray = shuffleArray(flatMatrix);
+//     matrix = getMatrix(shuffledArray);
+//     setPositionItems(matrix);
+// });
+const maxShuffleCount = 100;
+let timer;
+let shuffled = false;
+const shuffleClassName = "gameShuffle";
 document.getElementById("shuffle").addEventListener("click", () => {
-    const flatMatrix = matrix.flat();
-    const shuffledArray = shuffleArray(flatMatrix);
-    matrix = getMatrix(shuffledArray);
-    setPositionItems(matrix);
+    if (shuffled) {
+        return;
+    }
+    shuffled = true;
+    let shuffleCount = 0;
+    clearInterval(timer);
+    gameNode.classList.add(shuffleClassName);
+
+    if (shuffleCount === 0) {
+        timer = setInterval(() => {
+            randomSwap(matrix);
+            setPositionItems(matrix);
+            shuffleCount += 1;
+            if (shuffleCount >= maxShuffleCount) {
+                gameNode.classList.remove(shuffleClassName);
+                clearInterval(timer);
+                shuffled = false;
+            }
+        }, 70);
+    }
 });
 
 /** 3.Change position by click */
 const blankNumber = 16;
 containerNode.addEventListener("click", (event) => {
+    if (shuffled) {
+        return;
+    }
     const buttonNode = event.target.closest("button");
     if (!buttonNode) {
         return;
@@ -41,6 +71,9 @@ containerNode.addEventListener("click", (event) => {
 /** 4.Change position by arrows */
 
 window.addEventListener("keydown", (event) => {
+    if (shuffled) {
+        return;
+    }
     if (!event.key.includes("Arrow")) {
         return;
     }
@@ -84,6 +117,33 @@ window.addEventListener("keydown", (event) => {
 /**
  * Helpers
  */
+let blockedCoords = null;
+function randomSwap(matrix) {
+    const blankCoords = findCoordinatesByNumber(blankNumber, matrix);
+    const validCoords = findValidCoords({
+        blankCoords,
+        matrix,
+        blockedCoords,
+    });
+
+    const swapCoords = validCoords[Math.floor(Math.random() * validCoords.length)];
+    swap(blankCoords, swapCoords, matrix);
+    blockedCoords = blankCoords;
+}
+
+function findValidCoords({ blankCoords, matrix, blockedCoords }) {
+    const validCoords = [];
+    for (let y = 0; y < matrix.length; y++) {
+        for (let x = 0; x < matrix[y].length; x++) {
+            if (isValidForSwap({ x, y }, blankCoords)) {
+                if (!blockedCoords || !(blockedCoords.x === x && blockedCoords.y === y)) {
+                    validCoords.push({ x, y });
+                }
+            }
+        }
+    }
+    return validCoords;
+}
 
 function getMatrix(arr) {
     const matrix = [[], [], [], []];
